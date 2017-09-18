@@ -831,14 +831,14 @@ var (
 	}
 )
 
-func string2Latin (in string) (out string) {
-    for _, char:= range in {
-        latin := tolatin[char]
-        if latin == "" {
-            out += string(char)
-        } else {
-            out += latin
-        }
-    }
-    return
+func string2Latin(in string) (out string) {
+	for _, char := range in {
+		latin := tolatin[char]
+		if latin == "" {
+			out += string(char)
+		} else {
+			out += latin
+		}
+	}
+	return
 }
