@@ -80,7 +80,8 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 		}
 		defer db.Close()
 		ent := hex.EncodeToString(goxml.Hash(crypto.SHA1, entityID))
-		var query = "select e.md md from entity_HYBRID_INTERNAL e, lookup_HYBRID_INTERNAL l where l.hash = ? and l.entity_id_fk = e.id"
+		//		var query = "select e.md md from entity_HYBRID_INTERNAL e, lookup_HYBRID_INTERNAL l where l.hash = ? and l.entity_id_fk = e.id"
+		var query = "select e.md md from entity_HYBRID_EXTERNAL_SP e, lookup_HYBRID_EXTERNAL_SP l where l.hash = ? and l.entity_id_fk = e.id"
 		err = db.QueryRow(query, ent).Scan(&md)
 		if err != nil {
 			return err
