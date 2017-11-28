@@ -91,7 +91,6 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 		res.Logo = spMetaData.Query1(nil, "md:SPSSODescriptor/md:Extensions/mdui:UIInfo/mdui:Logo")
 		for _, l := range []string{"en"} {
 			res.DisplayName = spMetaData.Query1(nil, "md:SPSSODescriptor/md:Extensions/mdui:UIInfo/mdui:DisplayName[@xml:lang='"+l+"']")
-			fmt.Println("displayname", res.DisplayName, "md:SPSSODescriptor/md:Extensions/mdui:UIInfo/mdui:DisplayName[@xml:lang='"+l+"']")
 			if res.DisplayName != "" {
 				break
 			}
@@ -161,7 +160,7 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 		if err != nil {
 			return err
 		}
-		fmt.Println("q:", ftsquery, fedsquery)
+		//		fmt.Println("q:", ftsquery, fedsquery)
 		rows, err := db.Query("select json, keywords from disco where keywords MATCH ? limit 100", ftsquery+fedsquery)
 		if err != nil {
 			return err
