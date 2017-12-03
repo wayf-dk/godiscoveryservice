@@ -62,7 +62,7 @@ func DSTiming(w http.ResponseWriter, r *http.Request) (err error) {
 }
 
 func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
-	var md string
+	var md []byte
 	var spMetaData *goxml.Xp
 	var res response
 	res.Chosen = map[string]bool{}
@@ -86,7 +86,7 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 		if err != nil {
 			return err
 		}
-		md = string(gosaml.Inflate([]byte(md)))
+		md = gosaml.Inflate([]byte(md))
 		spMetaData = goxml.NewXp(md)
 		res.Logo = spMetaData.Query1(nil, "md:SPSSODescriptor/md:Extensions/mdui:UIInfo/mdui:Logo")
 		for _, l := range []string{"en"} {
