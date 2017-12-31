@@ -54,6 +54,7 @@ var (
 	notword              = regexp.MustCompile("[^\\w]")
 	whitespace           = regexp.MustCompile("[\\s]+|\\z")
 	notwordnorwhitespace = regexp.MustCompile("[^\\s\\w]")
+	spDB, idpDB          *sql.DB
 )
 
 // Only for logging response
@@ -74,15 +75,17 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 	chosen := strings.Split(r.Form.Get("chosen"), ",")
 
 	if entityID != "" {
-		db, err := sql.Open("sqlite3", Config.SpMetaData)
-		if err != nil {
-			return err
+		if spDB == nil {
+			spDB, err = sql.Open("sqlite3", Config.SpMetaData)
+			if err != nil {
+				return
+			}
 		}
-		defer db.Close()
+		//		defer db.Close()
 		ent := hex.EncodeToString(goxml.Hash(crypto.SHA1, entityID))
 		//		var query = "select e.md md from entity_HYBRID_INTERNAL e, lookup_HYBRID_INTERNAL l where l.hash = ? and l.entity_id_fk = e.id"
 		var query = "select e.md md from entity_HYBRID_EXTERNAL_SP e, lookup_HYBRID_EXTERNAL_SP l where l.hash = ? and l.entity_id_fk = e.id"
-		err = db.QueryRow(query, ent).Scan(&md)
+		err = spDB.QueryRow(query, ent).Scan(&md)
 		if err != nil {
 			return err
 		}
@@ -117,11 +120,13 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 		}
 		fedsquery += ")"
 
-		db, err := sql.Open("sqlite3", Config.DiscoMetaData)
-		if err != nil {
-			return err
+		if idpDB == nil {
+			idpDB, err = sql.Open("sqlite3", Config.DiscoMetaData)
+			if err != nil {
+				return
+			}
+			//defer db.Close()
 		}
-		defer db.Close()
 
 		if chosen[0] != "" {
 			chosenquery := "("
@@ -134,7 +139,7 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 			chosenquery += ")"
 			//fmt.Fprintln(w, "chosenquery", chosenquery + fedsquery)
 
-			rows, err := db.Query("select json from disco where entityid MATCH ? limit 10", chosenquery+fedsquery)
+			rows, err := idpDB.Query("select json from disco where entityid MATCH ? limit 10", chosenquery+fedsquery)
 			if err != nil {
 				return err
 			}
@@ -156,12 +161,12 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 			}
 		}
 
-		err = db.QueryRow("select count(*) c from disco where keywords MATCH ?", ftsquery+fedsquery).Scan(&res.Found)
+		err = idpDB.QueryRow("select count(*) c from disco where keywords MATCH ?", ftsquery+fedsquery).Scan(&res.Found)
 		if err != nil {
 			return err
 		}
 		//		fmt.Println("q:", ftsquery, fedsquery)
-		rows, err := db.Query("select json, keywords from disco where keywords MATCH ? limit 100", ftsquery+fedsquery)
+		rows, err := idpDB.Query("select json, keywords from disco where keywords MATCH ? limit 100", ftsquery+fedsquery)
 		if err != nil {
 			return err
 		}
