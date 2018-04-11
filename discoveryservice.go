@@ -9,6 +9,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/wayf-dk/gosaml"
 	"github.com/wayf-dk/goxml"
+	"github.com/y0ssar1an/q"
 	"net/http"
 	"regexp"
 	"strings"
@@ -49,6 +50,7 @@ type (
 )
 
 var (
+	_ = q.Q
 	Config               = Conf{}
 	dotdashpling         = regexp.MustCompile("[\\.\\-\\']")
 	notword              = regexp.MustCompile("[^\\w]")
