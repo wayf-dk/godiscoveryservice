@@ -46,11 +46,12 @@ type (
 		Idps        []idpInfoOut    `json:"idps"`
 		Logo        string          `json:"logo"`
 		DisplayName string          `json:"displayname"`
+		ProviderIDs []string        `json:"providerids"`
 	}
 )
 
 var (
-	_ = q.Q
+	_                    = q.Q
 	Config               = Conf{}
 	dotdashpling         = regexp.MustCompile("[\\.\\-\\']")
 	notword              = regexp.MustCompile("[^\\w]")
@@ -75,6 +76,7 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 	res.Feds = strings.Split(r.Form.Get("feds"), ",")
 	res.Idps = []idpInfoOut{}
 	chosen := strings.Split(r.Form.Get("chosen"), ",")
+	res.ProviderIDs = strings.Split(r.Form.Get("providerids"), ",")
 
 	if entityID != "" {
 		if spDB == nil {
@@ -104,6 +106,9 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 			res.Feds = spMetaData.QueryMulti(nil, "md:Extensions/wayf:wayf/wayf:feds")
 		}
 	}
+    if res.ProviderIDs[0] == "" {
+        res.ProviderIDs = []string{} //[]string{"https://birk.wayf.dk/birk.php/nemlogin.wayf.dk", "https://birk.wayf.dk/birk.php/orphanage.wayf.dk", "https://birk.wayf.dk/birk.php/wayf.ait.dtu.dk/saml2/idp/metadata.php"} //spMetaData.QueryMulti(nil, "md:Extensions/wayf:wayf/wayf:IDPList")
+    }
 
 	res.Spok = (entityID == "") == (spMetaData == nil) // both either on or off
 
@@ -121,6 +126,18 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 			delim = " OR "
 		}
 		fedsquery += ")"
+
+		providerIDsquery := ""
+		delim = "("
+		for _, providerID := range res.ProviderIDs {
+			providerID = notwordnorwhitespace.ReplaceAllLiteralString(providerID, "0")
+			providerIDsquery += delim + "entityid:" + providerID
+			delim = " OR "
+		}
+		if providerIDsquery != "" {
+			providerIDsquery += ")"
+		}
+		q.Q(res.ProviderIDs, providerIDsquery)
 
 		if idpDB == nil {
 			idpDB, err = sql.Open("sqlite3", Config.DiscoMetaData)
@@ -141,10 +158,12 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 			chosenquery += ")"
 			//fmt.Fprintln(w, "chosenquery", chosenquery + fedsquery)
 
-			rows, err := idpDB.Query("select json from disco where entityid MATCH ? limit 10", chosenquery+fedsquery)
+			rows, err := idpDB.Query("select json from disco where entityid MATCH ? limit 10", chosenquery+fedsquery+providerIDsquery)
 			if err != nil {
 				return err
 			}
+			q.Q(chosenquery)
+
 			defer rows.Close()
 			for rows.Next() {
 				var entityInfo []byte
@@ -163,15 +182,16 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 			}
 		}
 
-		err = idpDB.QueryRow("select count(*) c from disco where keywords MATCH ?", ftsquery+fedsquery).Scan(&res.Found)
+		err = idpDB.QueryRow("select count(*) c from disco where keywords MATCH ?", ftsquery+fedsquery+providerIDsquery).Scan(&res.Found)
 		if err != nil {
 			return err
 		}
 		//		fmt.Println("q:", ftsquery, fedsquery)
-		rows, err := idpDB.Query("select json, keywords from disco where keywords MATCH ? limit 100", ftsquery+fedsquery)
+		rows, err := idpDB.Query("select json, keywords from disco where keywords MATCH ? limit 100", ftsquery+fedsquery+providerIDsquery)
 		if err != nil {
 			return err
 		}
+		q.Q(fedsquery, providerIDsquery, ftsquery)
 		defer rows.Close()
 		for rows.Next() {
 			var entityInfo []byte
