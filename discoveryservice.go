@@ -106,9 +106,9 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 			res.Feds = spMetaData.QueryMulti(nil, "md:Extensions/wayf:wayf/wayf:feds")
 		}
 	}
-    if res.ProviderIDs[0] == "" {
-        res.ProviderIDs = []string{} //[]string{"https://birk.wayf.dk/birk.php/nemlogin.wayf.dk", "https://birk.wayf.dk/birk.php/orphanage.wayf.dk", "https://birk.wayf.dk/birk.php/wayf.ait.dtu.dk/saml2/idp/metadata.php"} //spMetaData.QueryMulti(nil, "md:Extensions/wayf:wayf/wayf:IDPList")
-    }
+	if res.ProviderIDs[0] == "" {
+		res.ProviderIDs = []string{} //[]string{"https://birk.wayf.dk/birk.php/nemlogin.wayf.dk", "https://birk.wayf.dk/birk.php/orphanage.wayf.dk", "https://birk.wayf.dk/birk.php/wayf.ait.dtu.dk/saml2/idp/metadata.php"} //spMetaData.QueryMulti(nil, "md:Extensions/wayf:wayf/wayf:IDPList")
+	}
 
 	res.Spok = (entityID == "") == (spMetaData == nil) // both either on or off
 
