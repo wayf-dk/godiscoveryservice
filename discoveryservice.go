@@ -137,7 +137,6 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 		if providerIDsquery != "" {
 			providerIDsquery += ")"
 		}
-		q.Q(res.ProviderIDs, providerIDsquery)
 
 		if idpDB == nil {
 			idpDB, err = sql.Open("sqlite3", Config.DiscoMetaData)
@@ -162,7 +161,6 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 			if err != nil {
 				return err
 			}
-			q.Q(chosenquery)
 
 			defer rows.Close()
 			for rows.Next() {
@@ -191,7 +189,6 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 		if err != nil {
 			return err
 		}
-		q.Q(fedsquery, providerIDsquery, ftsquery)
 		defer rows.Close()
 		for rows.Next() {
 			var entityInfo []byte
