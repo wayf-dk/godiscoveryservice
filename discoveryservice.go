@@ -29,7 +29,13 @@ type (
 	idpInfoOut struct {
 		EntityID     string            `json:"entityID"`
 		DisplayNames map[string]string `json:"DisplayNames"`
-		Keywords     string            `json:"Keywords"`
+		//Keywords     string            `json:"Keywords"`
+	}
+
+	spInfoOut struct {
+		EntityID     string            `json:"entityID"`
+		DisplayNames map[string]string `json:"DisplayNames"`
+		logo         string            `json:Logo`
 	}
 
 	displayName struct {
@@ -45,7 +51,7 @@ type (
 		Feds        []string        `json:"feds"`
 		Idps        []idpInfoOut    `json:"idps"`
 		Logo        string          `json:"logo"`
-		DisplayName string          `json:"displayname"`
+		Sp          spInfoOut       `json:"sp"`
 		ProviderIDs []string        `json:"providerids"`
 	}
 )
@@ -93,14 +99,12 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 		if err != nil {
 			return err
 		}
+		res.SP.EntityID = entityID
 		md = gosaml.Inflate([]byte(md))
 		spMetaData = goxml.NewXp(md)
-		res.Logo = spMetaData.Query1(nil, "md:SPSSODescriptor/md:Extensions/mdui:UIInfo/mdui:Logo")
-		for _, l := range []string{"en"} {
-			res.DisplayName = spMetaData.Query1(nil, "md:SPSSODescriptor/md:Extensions/mdui:UIInfo/mdui:DisplayName[@xml:lang='"+l+"']")
-			if res.DisplayName != "" {
-				break
-			}
+		res.Sp.Logo = spMetaData.Query1(nil, "md:SPSSODescriptor/md:Extensions/mdui:UIInfo/mdui:Logo")
+		for _, l := range []string{"en", "da"} {
+			res.Sp.DisplayName[l] = spMetaData.Query1(nil, "md:SPSSODescriptor/md:Extensions/mdui:UIInfo/mdui:DisplayName[@xml:lang='"+l+"']")
 		}
 		if res.Feds[0] == "" {
 			res.Feds = spMetaData.QueryMulti(nil, "md:Extensions/wayf:wayf/wayf:feds")
@@ -185,7 +189,7 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 			return err
 		}
 		//		fmt.Println("q:", ftsquery, fedsquery)
-		rows, err := idpDB.Query("select json, keywords from disco where keywords MATCH ? limit 100", ftsquery+fedsquery+providerIDsquery)
+		rows, err := idpDB.Query("select json from disco where keywords MATCH ? limit 100", ftsquery+fedsquery+providerIDsquery)
 		if err != nil {
 			return err
 		}
@@ -193,7 +197,7 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 		for rows.Next() {
 			var entityInfo []byte
 			var keywords string
-			err = rows.Scan(&entityInfo, &keywords)
+			err = rows.Scan(&entityInfo)
 			if err != nil {
 				return err
 			}
@@ -202,7 +206,7 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 			x := idpInfoOut{DisplayNames: map[string]string{}}
 			err = json.Unmarshal(entityInfo, &f)
 			x.EntityID = f.EntityID
-			x.Keywords = keywords
+			//x.Keywords = keywords
 			for _, dn := range f.DisplayNames {
 				x.DisplayNames[dn.Lang] = dn.Value
 			}
