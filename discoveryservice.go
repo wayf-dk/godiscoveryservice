@@ -29,13 +29,12 @@ type (
 	idpInfoOut struct {
 		EntityID     string            `json:"entityID"`
 		DisplayNames map[string]string `json:"DisplayNames"`
-		//Keywords     string            `json:"Keywords"`
 	}
 
 	spInfoOut struct {
 		EntityID     string            `json:"entityID"`
 		DisplayNames map[string]string `json:"DisplayNames"`
-		logo         string            `json:Logo`
+		Logo         string            `json:Logo`
 	}
 
 	displayName struct {
@@ -99,12 +98,13 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 		if err != nil {
 			return err
 		}
-		res.SP.EntityID = entityID
+		res.Sp.EntityID = entityID
 		md = gosaml.Inflate([]byte(md))
 		spMetaData = goxml.NewXp(md)
 		res.Sp.Logo = spMetaData.Query1(nil, "md:SPSSODescriptor/md:Extensions/mdui:UIInfo/mdui:Logo")
+		res.Sp.DisplayNames = map[string]string{}
 		for _, l := range []string{"en", "da"} {
-			res.Sp.DisplayName[l] = spMetaData.Query1(nil, "md:SPSSODescriptor/md:Extensions/mdui:UIInfo/mdui:DisplayName[@xml:lang='"+l+"']")
+			res.Sp.DisplayNames[l] = spMetaData.Query1(nil, "md:SPSSODescriptor/md:Extensions/mdui:UIInfo/mdui:DisplayName[@xml:lang='"+l+"']")
 		}
 		if res.Feds[0] == "" {
 			res.Feds = spMetaData.QueryMulti(nil, "md:Extensions/wayf:wayf/wayf:feds")
@@ -196,7 +196,6 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 		defer rows.Close()
 		for rows.Next() {
 			var entityInfo []byte
-			var keywords string
 			err = rows.Scan(&entityInfo)
 			if err != nil {
 				return err
