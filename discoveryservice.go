@@ -51,7 +51,6 @@ type (
 		Idps        []idpInfoOut    `json:"idps"`
 		Logo        string          `json:"logo"`
 		Sp          spInfoOut       `json:"sp"`
-		ProviderIDs []string        `json:"providerids"`
 	}
 )
 
@@ -81,6 +80,7 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 	res.Feds = strings.Split(r.Form.Get("feds"), ",")
 	res.Idps = []idpInfoOut{}
 	chosen := strings.Split(r.Form.Get("chosen"), ",")
+	providerIDs := strings.Split(r.Form.Get("providerids"), ",")
 
 	if entityID != "" {
 		if spDB == nil {
@@ -128,9 +128,9 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 		fedsquery += ")"
 
 		providerIDsquery := ""
-        if res.ProviderIDs[0] != "" {
+        if providerIDs[0] != "" {
             delim = "("
-            for _, providerID := range res.ProviderIDs {
+            for _, providerID := range providerIDs {
                 providerID = notwordnorwhitespace.ReplaceAllLiteralString(providerID, "0")
                 providerIDsquery += delim + "entityid:" + providerID
                 delim = " OR "
