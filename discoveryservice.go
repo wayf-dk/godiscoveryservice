@@ -66,6 +66,7 @@ var (
 
 // Only for logging response
 func DSTiming(w http.ResponseWriter, r *http.Request) (err error) {
+	w.Header().Set("Content-Type", "text/plain")
 	return
 }
 
