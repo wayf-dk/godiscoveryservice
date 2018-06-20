@@ -43,14 +43,14 @@ type (
 	}
 
 	response struct {
-		Spok        bool            `json:"spok"`
-		Chosen      map[string]bool `json:"chosen"`
-		Found       int             `json:"found"`
-		Rows        int             `json:"rows"`
-		Feds        []string        `json:"feds"`
-		Idps        []idpInfoOut    `json:"idps"`
-		Logo        string          `json:"logo"`
-		Sp          spInfoOut       `json:"sp"`
+		Spok   bool            `json:"spok"`
+		Chosen map[string]bool `json:"chosen"`
+		Found  int             `json:"found"`
+		Rows   int             `json:"rows"`
+		Feds   []string        `json:"feds"`
+		Idps   []idpInfoOut    `json:"idps"`
+		Logo   string          `json:"logo"`
+		Sp     spInfoOut       `json:"sp"`
 	}
 )
 
@@ -129,13 +129,13 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 		fedsquery += ")"
 
 		providerIDsquery := ""
-        if providerIDs[0] != "" {
-            delim = "("
-            for _, providerID := range providerIDs {
-                providerID = notwordnorwhitespace.ReplaceAllLiteralString(providerID, "0")
-                providerIDsquery += delim + "entityid:" + providerID
-                delim = " OR "
-            }
+		if providerIDs[0] != "" {
+			delim = "("
+			for _, providerID := range providerIDs {
+				providerID = notwordnorwhitespace.ReplaceAllLiteralString(providerID, "0")
+				providerIDsquery += delim + "entityid:" + providerID
+				delim = " OR "
+			}
 			providerIDsquery += ")"
 		}
 
@@ -151,35 +151,35 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 			//fmt.Fprintln(w, "chosenquery", chosenquery + fedsquery)
 		}
 
-   		if idpDB == nil {
+		if idpDB == nil {
 			idpDB, err = sql.Open("sqlite3", Config.DiscoMetaData)
 			if err != nil {
 				return
 			}
 			//defer db.Close()
 		}
-        q.Q(fedsquery, chosenquery, providerIDsquery)
-        rows, err := idpDB.Query("select json from disco where entityid MATCH ? limit 10", chosenquery+fedsquery+providerIDsquery)
-        if err != nil {
-            return err
-        }
+		q.Q(fedsquery, chosenquery, providerIDsquery)
+		rows, err := idpDB.Query("select json from disco where entityid MATCH ? limit 10", chosenquery+fedsquery+providerIDsquery)
+		if err != nil {
+			return err
+		}
 
-        defer rows.Close()
-        for rows.Next() {
-            var entityInfo []byte
-            err = rows.Scan(&entityInfo)
-            if err != nil {
-                return err
-            }
-            var f idpInfoIn
-            err = json.Unmarshal(entityInfo, &f)
-            res.Chosen[f.EntityID] = true
-        }
+		defer rows.Close()
+		for rows.Next() {
+			var entityInfo []byte
+			err = rows.Scan(&entityInfo)
+			if err != nil {
+				return err
+			}
+			var f idpInfoIn
+			err = json.Unmarshal(entityInfo, &f)
+			res.Chosen[f.EntityID] = true
+		}
 
-        err = rows.Err()
-        if err != nil {
-            return err
-        }
+		err = rows.Err()
+		if err != nil {
+			return err
+		}
 
 		err = idpDB.QueryRow("select count(*) c from disco where keywords MATCH ?", ftsquery+fedsquery+providerIDsquery).Scan(&res.Found)
 		if err != nil {
