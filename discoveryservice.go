@@ -158,7 +158,7 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 			}
 			//defer db.Close()
 		}
-		q.Q(fedsquery, chosenquery, providerIDsquery)
+
 		rows, err := idpDB.Query("select json from disco where entityid MATCH ? limit 10", chosenquery+fedsquery+providerIDsquery)
 		if err != nil {
 			return err
