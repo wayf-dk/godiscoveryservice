@@ -174,8 +174,8 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 			var f idpInfoIn
 			err = json.Unmarshal(entityInfo, &f)
 			if err != nil {
-			    return err
-		    }
+				return err
+			}
 			res.Chosen[f.EntityID] = true
 		}
 
@@ -205,8 +205,8 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 			x := idpInfoOut{DisplayNames: map[string]string{}}
 			err = json.Unmarshal(entityInfo, &f)
 			if err != nil {
-			    return err
-		    }
+				return err
+			}
 			x.EntityID = f.EntityID
 			//x.Keywords = keywords
 			for _, dn := range f.DisplayNames {
