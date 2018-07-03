@@ -16,6 +16,7 @@ import (
 )
 
 type (
+// Conf struct for reading the metadata feed
 	Conf struct {
 		DiscoMetaData string
 		SpMetaData    string
