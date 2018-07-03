@@ -57,7 +57,7 @@ type (
 
 var (
 	_                    = q.Q
-	Config               = Conf{}
+	Config               = Conf{} // Config initialisation
 	dotdashpling         = regexp.MustCompile("[\\.\\-\\']")
 	notword              = regexp.MustCompile("[^\\w]")
 	whitespace           = regexp.MustCompile("[\\s]+|\\z")
