@@ -34,7 +34,7 @@ type (
 	spInfoOut struct {
 		EntityID     string            `json:"entityID"`
 		DisplayNames map[string]string `json:"DisplayNames"`
-		Logo         string            `json:Logo`
+		Logo         string            `json:"Logo"`
 	}
 
 	displayName struct {
