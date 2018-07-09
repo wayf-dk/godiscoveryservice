@@ -1,3 +1,4 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/wayf-dk/godiscoveryservice)](https://goreportcard.com/report/github.com/wayf-dk/godiscoveryservice)
 # godiscoveryservice
 A SAML discoveryservice in Go using a SQLite FTS backend
 
