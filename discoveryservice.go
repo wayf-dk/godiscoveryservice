@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"sync"
 )
 
 type (
@@ -65,7 +66,21 @@ var (
 	whitespace           = regexp.MustCompile("[\\s]+|\\z")
 	notwordnorwhitespace = regexp.MustCompile("[^\\s\\w]")
 	spDB, idpDB          *sql.DB
+	lock  sync.Mutex
 )
+
+func MetadataUpdated() {
+	lock.Lock()
+	defer lock.Unlock()
+	if spDB != nil {
+	    spDB.Close()
+	    spDB = nil
+	}
+	if idpDB != nil {
+	    idpDB.Close()
+	    idpDB = nil
+	}
+}
 
 // DSTiming used for only logging response
 func DSTiming(w http.ResponseWriter, r *http.Request) (err error) {
@@ -75,6 +90,9 @@ func DSTiming(w http.ResponseWriter, r *http.Request) (err error) {
 
 // DSBackend takes the request extracts the entityID and returns an IDP
 func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
+	lock.Lock()
+	defer lock.Unlock()
+
 	var md []byte
 	var spMetaData *goxml.Xp
 	var res response
