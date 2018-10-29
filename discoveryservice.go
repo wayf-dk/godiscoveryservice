@@ -32,6 +32,7 @@ type (
 	idpInfoOut struct {
 		EntityID     string            `json:"entityID"`
 		DisplayNames map[string]string `json:"DisplayNames"`
+		Relevant     bool              `json:"relevant"`
 	}
 
 	spInfoOut struct {
@@ -47,7 +48,7 @@ type (
 
 	response struct {
 		Spok   bool            `json:"spok"`
-		Chosen map[string]bool `json:"chosen"`
+		Chosen []idpInfoOut `json:"chosen"`
 		Found  int             `json:"found"`
 		Rows   int             `json:"rows"`
 		Feds   []string        `json:"feds"`
@@ -96,7 +97,6 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 	var md []byte
 	var spMetaData *goxml.Xp
 	var res response
-	res.Chosen = map[string]bool{}
 	r.ParseForm()
 	entityID := r.Form.Get("entityID")
 	query := strings.ToLower(string2Latin(r.Form.Get("query")))
@@ -180,8 +180,36 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 			}
 			//defer db.Close()
 		}
+        // Find the still active earlier chosen IdPs - maybe the have gotten new displaynames
+		rows, err := idpDB.Query("select json from disco where entityid MATCH ? limit 10", chosenquery)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var entityInfo []byte
+			err = rows.Scan(&entityInfo)
+			if err != nil {
+				return err
+			}
 
-		rows, err := idpDB.Query("select json from disco where entityid MATCH ? limit 10", chosenquery+fedsquery+providerIDsquery)
+			var f idpInfoIn
+			x := idpInfoOut{DisplayNames: map[string]string{}}
+			err = json.Unmarshal(entityInfo, &f)
+			if err != nil {
+				return err
+			}
+			x.EntityID = f.EntityID
+			//x.Keywords = keywords
+			for _, dn := range f.DisplayNames {
+				x.DisplayNames[dn.Lang] = dn.Value
+			}
+
+			res.Chosen = append(res.Chosen, x)
+			//fmt.Fprintln(w, "f", f)
+		}
+        // Find if earlier chosen IdPs are relevant
+		rows, err = idpDB.Query("select json from disco where entityid MATCH ? limit 10", chosenquery+fedsquery+providerIDsquery)
 		if err != nil {
 			return err
 		}
@@ -193,12 +221,17 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 			if err != nil {
 				return err
 			}
-			var f idpInfoIn
+			var f idpInfoOut
 			err = json.Unmarshal(entityInfo, &f)
 			if err != nil {
 				return err
 			}
-			res.Chosen[f.EntityID] = true
+            // not that many - just iterate
+            for _, chosen := range res.Chosen {
+                if chosen.EntityID == f.EntityID {
+                    chosen.Relevant = true
+                }
+            }
 		}
 
 		err = rows.Err()
@@ -206,11 +239,12 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 			return err
 		}
 
+        // Find number of relevant IdPs
 		err = idpDB.QueryRow("select count(*) c from disco where keywords MATCH ?", ftsquery+fedsquery+providerIDsquery).Scan(&res.Found)
 		if err != nil {
 			return err
 		}
-		//		fmt.Println("q:", ftsquery, fedsquery)
+		// Find the first 100 relevant IdPs
 		rows, err = idpDB.Query("select json from disco where keywords MATCH ? limit 100", ftsquery+fedsquery+providerIDsquery)
 		if err != nil {
 			return err
