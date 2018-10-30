@@ -48,7 +48,7 @@ type (
 
 	response struct {
 		Spok   bool            `json:"spok"`
-		Chosen []idpInfoOut `json:"chosen"`
+		Chosen []idpInfoOut    `json:"chosen"`
 		Found  int             `json:"found"`
 		Rows   int             `json:"rows"`
 		Feds   []string        `json:"feds"`
@@ -170,7 +170,7 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 				delim = " OR "
 			}
 			chosenquery += ")"
-			//fmt.Fprintln(w, "chosenquery", chosenquery + fedsquery)
+			//fmt.Fprintln(w, "chosenquery", chosenquery)
 		}
 
 		if idpDB == nil {
@@ -206,7 +206,7 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 			}
 
 			res.Chosen = append(res.Chosen, x)
-			//fmt.Fprintln(w, "f", f)
+			//fmt.Fprintln(w, "chosen", res.Chosen)
 		}
         // Find if earlier chosen IdPs are relevant
 		rows, err = idpDB.Query("select json from disco where entityid MATCH ? limit 10", chosenquery+fedsquery+providerIDsquery)
@@ -221,15 +221,15 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 			if err != nil {
 				return err
 			}
-			var f idpInfoOut
+			var f idpInfoIn
 			err = json.Unmarshal(entityInfo, &f)
 			if err != nil {
 				return err
 			}
             // not that many - just iterate
-            for _, chosen := range res.Chosen {
+            for i, chosen := range res.Chosen {
                 if chosen.EntityID == f.EntityID {
-                    chosen.Relevant = true
+                    res.Chosen[i].Relevant = true
                 }
             }
 		}
