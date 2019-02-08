@@ -152,7 +152,7 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 		if res.Feds[0] == "" {
 			res.Feds = spMetaData.QueryMulti(nil, "md:Extensions/wayf:wayf/wayf:feds")
 		}
-		res.DiscoResponsePrefixes = spMetaData.QueryMulti(nil, "md:SPSSODescriptor/md:Extensions/idpdisc:DiscoveryResponse[@Binding='urn:geant:wayf.dk:idp-discovery-protocol:prefix']")
+		res.DiscoResponsePrefixes = spMetaData.QueryMulti(nil, "md:SPSSODescriptor/md:Extensions/idpdisc:DiscoveryResponse[@Binding='urn:geant:wayf.dk:idp-discovery-protocol:prefix']/@Location")
 	}
 
 	fedsquery := ""
