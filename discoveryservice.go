@@ -55,7 +55,8 @@ type (
 		Idps                  []idpInfoOut `json:"idps"`
 		Logo                  string       `json:"logo"`
 		Sp                    spInfoOut    `json:"sp"`
-		DiscoResponsePrefixes []string     `json:"discoResponsePrefixes"`
+		DiscoResponse         []string     `json:"discoResponse"`
+		DiscoASC              []string     `json:"discoACS"`
 	}
 )
 
@@ -152,7 +153,8 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 		if res.Feds[0] == "" {
 			res.Feds = spMetaData.QueryMulti(nil, "md:Extensions/wayf:wayf/wayf:feds")
 		}
-		res.DiscoResponsePrefixes = spMetaData.QueryMulti(nil, "md:SPSSODescriptor/md:Extensions/idpdisc:DiscoveryResponse[@Binding='urn:geant:wayf.dk:idp-discovery-protocol:prefix']/@Location")
+		res.DiscoResponse = spMetaData.QueryMulti(nil, "md:SPSSODescriptor/md:Extensions/idpdisc:DiscoveryResponse[@Binding='urn:oasis:names:tc:SAML:profiles:SSO:idp-discovery-protocol']/@Location")
+		res.DiscoACS = spMetaData.QueryMulti(nil, "md:SPSSODescriptor/md:AssertionConsumerService[@Binding='urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST']/@Location")
 	}
 
 	fedsquery := ""
