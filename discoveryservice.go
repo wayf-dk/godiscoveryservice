@@ -56,7 +56,7 @@ type (
 		Logo                  string       `json:"logo"`
 		Sp                    spInfoOut    `json:"sp"`
 		DiscoResponse         []string     `json:"discoResponse"`
-		DiscoASC              []string     `json:"discoACS"`
+		DiscoACS              []string     `json:"discoACS"`
 	}
 )
 
