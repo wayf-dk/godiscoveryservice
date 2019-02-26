@@ -101,7 +101,7 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 	var res response
 	r.ParseForm()
 	entityID := r.Form.Get("entityID")
-	query := strings.ToLower(string2Latin(r.Form.Get("query")))
+	ftsquery := strings.ToLower(string2Latin(r.Form.Get("query")))
 	res.Feds = strings.Split(r.Form.Get("feds"), ",")
 	res.Idps = []idpInfoOut{}
 	chosen := strings.Split(r.Form.Get("chosen"), ",")
@@ -243,8 +243,6 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 
 		}
 
-		ftsquery := dotdashpling.ReplaceAllLiteralString(query, "0")
-		ftsquery = notword.ReplaceAllLiteralString(ftsquery, " ")
 		ftsquery = whitespace.ReplaceAllLiteralString(ftsquery, "* ")
 
 		// Find number of relevant IdPs
