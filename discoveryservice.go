@@ -36,9 +36,10 @@ type (
 	}
 
 	spInfoOut struct {
-		EntityID     string            `json:"entityID"`
-		DisplayNames map[string]string `json:"DisplayNames"`
-		Logo         string            `json:"Logo"`
+		EntityID          string            `json:"entityID"`
+		DisplayNames      map[string]string `json:"DisplayNames"`
+		RequestInitiators []string          `json:"RequestInitiators"`
+		Logo              string            `json:"Logo"`
 	}
 
 	displayName struct {
@@ -144,6 +145,7 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 			md = gosaml.Inflate([]byte(md))
 			spMetaData = goxml.NewXp(md)
 			res.Sp.Logo = spMetaData.Query1(nil, "md:SPSSODescriptor/md:Extensions/mdui:UIInfo/mdui:Logo")
+			res.Sp.RequestInitiators = spMetaData.QueryMulti(nil, "md:SPSSODescriptor/md:Extensions/init:RequestInitiator/@Location")
 			res.Sp.DisplayNames = map[string]string{}
 			for _, l := range []string{"en", "da"} {
 				res.Sp.DisplayNames[l] = spMetaData.Query1(nil, "md:SPSSODescriptor/md:Extensions/mdui:UIInfo/mdui:DisplayName[@xml:lang='"+l+"']")
