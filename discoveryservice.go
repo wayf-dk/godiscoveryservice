@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	// 	_ "github.com/mattn/go-sqlite3" for handling sqlite3
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/wayf-dk/gosaml"
 	"github.com/wayf-dk/goxml"
@@ -120,7 +119,6 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 		if err != nil {
 			return
 		}
-		//defer db.Close()
 	}
 
 	providerIDsquery := ""
