@@ -9,7 +9,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/wayf-dk/gosaml"
 	"github.com/wayf-dk/goxml"
-	"github.com/y0ssar1an/q"
+	"q"
 	"net/http"
 	"regexp"
 	"strings"
