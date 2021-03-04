@@ -13,15 +13,10 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	config "example.com/hybrid-config"
 )
 
 type (
-	// Conf struct for reading the metadata feed
-	Conf struct {
-		DiscoMetaData string
-		SpMetaData    string
-	}
-
 	idpInfoIn struct {
 		EntityID     string        `json:"entityid"`
 		DisplayNames []displayName `json:"DisplayNames"`
@@ -60,8 +55,6 @@ type (
 )
 
 var (
-	// Config initialisation
-	Config               = Conf{}
 	dotdashpling         = regexp.MustCompile("[\\.\\-\\']")
 	notword              = regexp.MustCompile("[^\\w]")
 	whitespace           = regexp.MustCompile("[\\s]+|\\z")
@@ -106,14 +99,14 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 	providerIDs := strings.Split(r.Form.Get("providerids"), ",")
 
 	if spDB == nil {
-		spDB, err = sql.Open("sqlite3", Config.SpMetaData)
+		spDB, err = sql.Open("sqlite3", config.DiscoSPMetadata)
 		if err != nil {
 			return
 		}
 	}
 
 	if idpDB == nil {
-		idpDB, err = sql.Open("sqlite3", Config.DiscoMetaData)
+		idpDB, err = sql.Open("sqlite3", config.DiscoMetadata)
 		if err != nil {
 			return
 		}
