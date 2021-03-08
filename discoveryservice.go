@@ -13,7 +13,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
-	config "example.com/hybrid-config"
+	"x.config"
 )
 
 type (
