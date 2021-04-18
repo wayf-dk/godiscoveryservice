@@ -51,6 +51,7 @@ type (
 		Sp            spInfoOut    `json:"sp"`
 		DiscoResponse []string     `json:"discoResponse"`
 		DiscoACS      []string     `json:"discoACS"`
+		Prioritized   []idpInfoOut `json:"prioritized"`
 	}
 )
 
@@ -232,6 +233,11 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 				}
 			}
 
+			prioritized, _ := lookup("select json from disco where keywords MATCH ? limit 10", fedsquery+" prioritized")
+			for i, _ := range prioritized {
+				prioritized[i].Relevant = true
+			}
+			res.Chosen = append(res.Chosen, prioritized...)
 		}
 
 		ftsquery = whitespace.ReplaceAllLiteralString(ftsquery, "* ")
