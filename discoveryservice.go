@@ -113,16 +113,7 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 		}
 	}
 
-	providerIDsquery := ""
-	if providerIDs[0] != "" {
-		delim := "("
-		for _, providerID := range providerIDs {
-			providerID = notwordnorwhitespace.ReplaceAllLiteralString(providerID, "0")
-			providerIDsquery += delim + "entityid:" + providerID
-			delim = " OR "
-		}
-		providerIDsquery += ")"
-	}
+	providerIDsquery := makeQuery(providerIDs, "entityid:")
 
 	if entityID != "" {
 		//		defer db.Close()
@@ -151,85 +142,24 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 	res.Spok = (entityID == "") == (spMetaData == nil) // both either on or off
 
 	if res.Spok {
-
-		fedsquery := ""
-		delim := "("
-		for _, fed := range res.Feds {
-			fed = notwordnorwhitespace.ReplaceAllLiteralString(fed, "0")
-			fedsquery += delim + "feds:" + fed
-			delim = " OR "
-		}
-		fedsquery += ")"
-
+		fedsquery := makeQuery(res.Feds, "feds:")
 		if entityID != "" {
-			chosenquery := ""
-			if chosen[0] != "" {
-				delim = "("
-				for _, chosenentity := range chosen {
-					chosenentity = notwordnorwhitespace.ReplaceAllLiteralString(chosenentity, "0")
-					chosenquery += delim + chosenentity
-					delim = " OR "
-				}
-				chosenquery += ")"
-				//fmt.Fprintln(w, "chosenquery", chosenquery)
+			chosenquery := makeQuery(chosen, "")
 
-				// Find the still active earlier chosen IdPs - maybe the have gotten new displaynames
-				rows, err := idpDB.Query("select json from disco where entityid MATCH ? limit 10", chosenquery)
-				if err != nil {
-					return err
-				}
-				defer rows.Close()
-				for rows.Next() {
-					var entityInfo []byte
-					err = rows.Scan(&entityInfo)
-					if err != nil {
-						return err
-					}
+			// Find the still active earlier chosen IdPs - maybe they have gotten new displaynames
+			res.Chosen, err = lookup("select json from disco where entityid MATCH ? limit 10", chosenquery)
 
-					var f idpInfoIn
-					x := idpInfoOut{DisplayNames: map[string]string{}}
-					err = json.Unmarshal(entityInfo, &f)
-					if err != nil {
-						return err
-					}
-					x.EntityID = f.EntityID
-					//x.Keywords = keywords
-					for _, dn := range f.DisplayNames {
-						x.DisplayNames[dn.Lang] = dn.Value
-					}
+			// Find if earlier chosen IdPs are relevant
+			relevantIdPs, err := lookup("select json from disco where entityid MATCH ? limit 10", chosenquery+fedsquery+providerIDsquery)
+			if err != nil {
+				return err
+			}
 
-					res.Chosen = append(res.Chosen, x)
-					//fmt.Fprintln(w, "chosen", res.Chosen)
-				}
-				// Find if earlier chosen IdPs are relevant
-				rows, err = idpDB.Query("select json from disco where entityid MATCH ? limit 10", chosenquery+fedsquery+providerIDsquery)
-				if err != nil {
-					return err
-				}
-
-				defer rows.Close()
-				for rows.Next() {
-					var entityInfo []byte
-					err = rows.Scan(&entityInfo)
-					if err != nil {
-						return err
+			for _, relevantIdP := range relevantIdPs {
+				for i, chosen := range res.Chosen {
+					if chosen.EntityID == relevantIdP.EntityID {
+						res.Chosen[i].Relevant = true
 					}
-					var f idpInfoIn
-					err = json.Unmarshal(entityInfo, &f)
-					if err != nil {
-						return err
-					}
-					// not that many - just iterate
-					for i, chosen := range res.Chosen {
-						if chosen.EntityID == f.EntityID {
-							res.Chosen[i].Relevant = true
-						}
-					}
-				}
-
-				err = rows.Err()
-				if err != nil {
-					return err
 				}
 			}
 
@@ -248,40 +178,60 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 			return err
 		}
 		// Find the first 100 relevant IdPs
-		rows, err := idpDB.Query("select json from disco where keywords MATCH ? limit 100", ftsquery+fedsquery+providerIDsquery)
+		res.Idps, err = lookup("select json from disco where keywords MATCH ? limit 100", ftsquery+fedsquery+providerIDsquery)
 		if err != nil {
 			return err
 		}
-		defer rows.Close()
-		for rows.Next() {
-			var entityInfo []byte
-			err = rows.Scan(&entityInfo)
-			if err != nil {
-				return err
-			}
-
-			var f idpInfoIn
-			x := idpInfoOut{DisplayNames: map[string]string{}}
-			err = json.Unmarshal(entityInfo, &f)
-			if err != nil {
-				return err
-			}
-			x.EntityID = f.EntityID
-			//x.Keywords = keywords
-			for _, dn := range f.DisplayNames {
-				x.DisplayNames[dn.Lang] = dn.Value
-			}
-
-			res.Idps = append(res.Idps, x)
-			res.Rows++
-			//fmt.Fprintln(w, "f", f)
-		}
-		err = rows.Err()
-		if err != nil {
-			return err
-		}
+		res.Rows = len(res.Idps)
 	}
 	b, err := json.Marshal(res)
 	fmt.Fprintln(w, string(b))
+	return
+}
+
+func lookup(query, params string) (res []idpInfoOut, err error) {
+	rows, err := idpDB.Query(query, params)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var entityInfo []byte
+		err = rows.Scan(&entityInfo)
+		if err != nil {
+			return
+		}
+
+		var f idpInfoIn
+		x := idpInfoOut{DisplayNames: map[string]string{}}
+		err = json.Unmarshal(entityInfo, &f)
+		if err != nil {
+			return
+		}
+		x.EntityID = f.EntityID
+		//x.Keywords = keywords
+		for _, dn := range f.DisplayNames {
+			x.DisplayNames[dn.Lang] = dn.Value
+		}
+
+		res = append(res, x)
+		//fmt.Fprintln(w, "f", f)
+	}
+	err = rows.Err()
+	if err != nil {
+		return
+	}
+	return
+}
+
+func makeQuery(vals []string, field string) (query string) {
+    var delim string
+	query = "("
+	for _, val := range vals {
+		val = notwordnorwhitespace.ReplaceAllLiteralString(val, "0")
+		query += delim + field + val
+		delim = " OR "
+	}
+	query += ")"
 	return
 }
