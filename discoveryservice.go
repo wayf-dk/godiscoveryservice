@@ -98,7 +98,6 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 	res.Idps = []idpInfoOut{}
 	chosen := strings.Split(r.Form.Get("chosen"), ",")
 	providerIDs := strings.Split(r.Form.Get("providerids"), ",")
-
 	if spDB == nil {
 		spDB, err = sql.Open("sqlite3", config.DiscoSPMetadata)
 		if err != nil {
