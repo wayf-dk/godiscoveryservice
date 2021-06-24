@@ -98,6 +98,7 @@ func DSBackend(w http.ResponseWriter, r *http.Request) (err error) {
 	res.Idps = []idpInfoOut{}
 	chosen := strings.Split(r.Form.Get("chosen"), ",")
 	providerIDs := strings.Split(r.Form.Get("providerids"), ",")
+
 	if spDB == nil {
 		spDB, err = sql.Open("sqlite3", config.DiscoSPMetadata)
 		if err != nil {
@@ -224,7 +225,7 @@ func lookup(query, params string) (res []idpInfoOut, err error) {
 }
 
 func makeQuery(vals []string, field string) (query string) {
-    var delim string
+	var delim string
 	query = "("
 	for _, val := range vals {
 		val = notwordnorwhitespace.ReplaceAllLiteralString(val, "0")
