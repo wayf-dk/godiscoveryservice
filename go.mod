@@ -1,12 +1,21 @@
 module github.com/wayf-dk/godiscoveryservice
 
-go 1.16
+go 1.22.0
 
 require (
-	github.com/mattn/go-sqlite3 v1.14.8
-	github.com/wayf-dk/gosaml v0.0.0-20210625075105-0384b2997a7c
-	github.com/wayf-dk/goxml v0.0.0-20201218125345-b1a8c71da4f0
+	github.com/mattn/go-sqlite3 v1.14.22
+	github.com/wayf-dk/gosaml v0.0.0-20240226131603-95c38d32b4c5
+	github.com/wayf-dk/goxml v0.0.0-20240226131044-6b837b25feb7
 	x.config v0.0.0-00010101000000-000000000000
+)
+
+require (
+	github.com/miekg/pkcs11 v1.1.2-0.20231115102856-9078ad6b9d4b // indirect
+	github.com/pkg/errors v0.9.1 // indirect
+	github.com/wayf-dk/go-libxml2 v0.0.0-20231207144727-d602dab8cded // indirect
+	github.com/wayf-dk/goeleven v0.0.0-20230816115740-d287bc08e939 // indirect
+	golang.org/x/crypto v0.20.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
 )
 
 replace (
