@@ -4,7 +4,7 @@ go 1.22.0
 
 require (
 	github.com/mattn/go-sqlite3 v1.14.22
-	github.com/wayf-dk/gosaml v0.0.0-20240226131603-95c38d32b4c5
+	github.com/wayf-dk/gosaml v0.0.0-20240228091111-7bcd141f879d
 	github.com/wayf-dk/goxml v0.0.0-20240226131044-6b837b25feb7
 	x.config v0.0.0-00010101000000-000000000000
 )

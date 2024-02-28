@@ -10,8 +10,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
-github.com/wayf-dk/gosaml v0.0.0-20240226131603-95c38d32b4c5 h1:V8OZihm/DZNJaP0Q8CdPNjrwdF9bmp+XpkDP7aK8I0A=
-github.com/wayf-dk/gosaml v0.0.0-20240226131603-95c38d32b4c5/go.mod h1:SiyRNmLd9JAObljNkpk1Eh9g3NlT5Ey+498j7/aHves=
+github.com/wayf-dk/gosaml v0.0.0-20240228091111-7bcd141f879d h1:ZBxU4FY0cu26Im4hLmJ05KUSogdz+iL8Z3eyb2e4D2E=
+github.com/wayf-dk/gosaml v0.0.0-20240228091111-7bcd141f879d/go.mod h1:nTfvwZFBLYEC0pJv+bv6QOxC4Q8DK1z/JPvfPMpAjZU=
 golang.org/x/crypto v0.20.0 h1:jmAMJJZXr5KiCw05dfYK9QnqaqKLYXijU23lsEdcQqg=
 golang.org/x/crypto v0.20.0/go.mod h1:Xwo95rrVNIoSMx9wa1JroENMToLWn3RNVrTBpLHgZPQ=
 golang.org/x/sys v0.17.0 h1:25cE3gD+tdBA7lp7QfhuV+rJiE9YXTcS3VG1SqssI/Y=
